@@ -6,7 +6,7 @@ namespace Posterr.api.Repositories.Interfaces
 {
     public interface IPostsRepository : IRepository<Post>
     {
-        Task<PagedList<SearchPostResponse>> Search(int pageSize, int pageNumber, string? keyword);
-        IQueryable<Post> GetUsersPost(Guid userId);
+        Task<PagedList<SearchPostResponse>> Search(SearchPostsParameters filters, CancellationToken cancellationToken);
+        Task<int> TotalTodayUserPosts(Guid userId, CancellationToken cancellationToken);
     }
 }

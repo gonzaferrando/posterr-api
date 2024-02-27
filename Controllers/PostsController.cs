@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Posterr.api.Contracts.Posts;
 using Posterr.api.Data;
 using Posterr.api.Repositories.Interfaces;
@@ -24,9 +23,9 @@ namespace Posterr.api.Controllers
         /// <returns>List of post found.</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<PagedList<SearchPostResponse>>> Search(int pageSize, int pageNumber, string? keyword)
+        public async Task<ActionResult<PagedList<SearchPostResponse>>> Search([FromQuery] SearchPostsParameters filters, CancellationToken cancellationToken)
         {
-            return Ok(await _repository.Search(pageSize, pageNumber, keyword));
+            return Ok(await _repository.Search(filters, cancellationToken));
         }
 
         /// <summary>Creates a post.</summary>
@@ -34,14 +33,12 @@ namespace Posterr.api.Controllers
         /// <returns>The created post.</returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult> Post(CreatePostRequest model)
+        public async Task<ActionResult> Post(CreatePostRequest model, CancellationToken cancellationToken)
         {
             var userId = Guid.Parse("1c7e6d15-b97e-4076-b1a4-8d5de0257f0d"); // Hardcoded user id.
 
 
-            var userPosts = await _repository.GetUsersPost(userId)
-                                            .Where(p => DateTime.Compare(p.CreatedAt.Date, DateTime.Today.Date) == 0)
-                                            .CountAsync();
+            var userPosts = await _repository.TotalTodayUserPosts(userId, cancellationToken);
             if (userPosts == 5)
             {
                 return BadRequest("You reached max amount of posts for today.");
